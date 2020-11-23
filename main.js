@@ -2,17 +2,21 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 
-const package = require('./package.json')
+const { name, version } = require('./package.json')
 const users = require('./users.json');
+const functions = require('./functions.js');
 
 const app = express();
 const jsonParser = bodyParser.json();
 
-let startDate = new Date;
+const startDate = new Date;
+
+app.use(jsonParser);
 
 app
+
     .get('/', (request, response) => {
-        response.send(package.name + ' ' + package.version);
+        response.send({ name, version });
     })
 
     .get('/ping', (request, response) => {
@@ -20,66 +24,27 @@ app
     })
 
     .get('/uptime', (request, response) => {
-        let nowDate = new Date;
-        let workTime = nowDate - startDate;
-        response.send(workTime.toString());
+        response.send((new Date - startDate).toString());
     })
 
 
     .get('/users/:id', (request, response) => {
-        function getById(id) {
-            return users.find(element => element.id === id);
-        };
         response.send(getById(Number(request.params.id)));
     })
 
     .post('/users/', (request, response) => {
-        if (!request.body) return response.sendStatus(400);
-
+        if (!(request.body.name, request.body.age)) return response.sendStatus(400);
         let userName = request.body.name;
         let userAge = request.body.age;
         let user = { name: userName, age: userAge };
-
-        let readData = fs.readFileSync("users.json", "utf8");
-        let users = JSON.parse(readData);
-
-
-        let id = Math.max.apply(Math, users.map(function (i) {
-            return i.id;
-        }));
-
-        user.id = id + 1;
-
-        users.push(user);
-        let data = JSON.stringify(users);
-
-        fs.writeFileSync("users.json", data);
+        add(user, (id) => id ? response.send(user) : response.sendStatus(404));
     })
 
     .delete('/users/:id', (request, response) => {
-        let id = request.params.id;
-        let readData = fs.readFileSync("users.json", "utf8");
-        let users = JSON.parse(readData);
-        let index = -1;
-
-        for (var i = 0; i < users.length; i++) {
-            if (users[i].id == id) {
-                index = i;
-                break;
-            }
-        }
-
-        if (index > -1) {
-
-            let user = users.splice(index, 1)[0];
-            let data = JSON.stringify(users);
-            fs.writeFileSync("users.json", data);
-
-            response.sendStatus(200);
-        }
-        else {
-            response.sendStatus(404);
-        }
+        let id = Number(request.params.id);
+        delById(id, (ok) => ok ? response.sendStatus(200) : response.sendStatus(404));
     })
 
-app.listen(3000);
+const PORT = 3000;
+
+app.listen(PORT, () => console.info(`Server started on http://localhost:${PORT}`));
