@@ -51,7 +51,7 @@ app
                 response.statusCode(500);
             } else {
                 if (data) {
-                    response.send(user);
+                    response.send(data);
                 } else {
                     response.sendStatus(404);
                 };
