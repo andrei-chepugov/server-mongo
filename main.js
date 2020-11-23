@@ -1,19 +1,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const fs = require('fs');
 
 const { name, version } = require('./package.json')
-const users = require('./users.json');
+
 const functions = require('./functions.js');
+const getById = functions.getById;
+const add = functions.getById;
+const delById = functions.delById;
 
 const app = express();
 const jsonParser = bodyParser.json();
 
 const startDate = new Date;
 
-app.use(jsonParser);
-
 app
+    .use(jsonParser)
 
     .get('/', (request, response) => {
         response.send({ name, version });
@@ -29,20 +30,47 @@ app
 
 
     .get('/users/:id', (request, response) => {
-        response.send(getById(Number(request.params.id)));
+        functions.getById(Number(request.params.id), (err, data) => {
+            if (err) {
+                response.statusCode(500);
+            } else {
+                if (data) {
+                    response.send(data);
+                } else {
+                    response.statusCode(404);
+                };
+            };
+        });
     })
 
     .post('/users/', (request, response) => {
         if (!(request.body.name, request.body.age)) return response.sendStatus(400);
-        let userName = request.body.name;
-        let userAge = request.body.age;
-        let user = { name: userName, age: userAge };
-        add(user, (id) => id ? response.send(user) : response.sendStatus(404));
+        let user = { name: request.body.name, age: request.body.age };
+        functions.add(user, (err, data) => {
+            if (err) {
+                response.statusCode(500);
+            } else {
+                if (data) {
+                    response.send(user);
+                } else {
+                    response.sendStatus(404);
+                };
+            };
+        });
     })
 
     .delete('/users/:id', (request, response) => {
-        let id = Number(request.params.id);
-        delById(id, (ok) => ok ? response.sendStatus(200) : response.sendStatus(404));
+        functions.delById(Number(request.params.id), (err, data) => {
+            if (err) {
+                response.statusCode(500);
+            } else {
+                if (data) {
+                    response.sendStatus(200);
+                } else {
+                    response.sendStatus(404);
+                };
+            };
+        });
     })
 
 const PORT = 3000;
