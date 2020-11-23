@@ -10,7 +10,7 @@ function getById(id, cb) {
                 cb(null, users.find(element => element.id === id));
             } catch (error) {
                 cb(error, null);
-            }
+            };
         };
     });
 };
@@ -35,7 +35,7 @@ function add(user, cb) {
                     if (err) {
                         cb(err);
                     };
-                })
+                });
             };
         };
     });
