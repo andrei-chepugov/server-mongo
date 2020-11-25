@@ -25,7 +25,7 @@ module.exports.default = (app) => {
         .get('/users/:id', (request, response) => {
             functions.getById(Number(request.params.id), (err, data) => {
                 if (err) {
-                    response.statusCode(500);
+                    response.sendStatus(500);
                 } else {
                     if (data) {
                         response.send(data);
@@ -41,10 +41,10 @@ module.exports.default = (app) => {
             let user = { name: request.body.name, age: request.body.age };
             functions.add(user, (err, data) => {
                 if (err) {
-                    response.statusCode(500);
+                    response.sendStatus(500);
                 } else {
                     if (data) {
-                        response.send(data);
+                        response.send({ id: data });
                     } else {
                         response.sendStatus(404);
                     };
@@ -55,9 +55,9 @@ module.exports.default = (app) => {
         .delete('/users/:id', (request, response) => {
             functions.delById(Number(request.params.id), (err, data) => {
                 if (err) {
-                    response.statusCode(500);
+                    response.sendStatus(500);
                 } else {
-                    if (data) {
+                    if (Boolean(data)) {
                         response.sendStatus(200);
                     } else {
                         response.sendStatus(404);
