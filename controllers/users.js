@@ -1,59 +1,46 @@
+const { rejects } = require('assert');
 const fs = require('fs');
-const mysql = require('mysql2');
+const MongoClient = require('mongodb').MongoClient;
+const url = 'mongodb://localhost:27017';
+const dbName = 'myproject';
 
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '654065'
-});
+let connect = null;
 
-function getById(id, cb) {
-    connection.query(
-        'SELECT * FROM users.users WHERE id=?', [id], (err, results) => {
-            if (err) {
-                cb(err, null);
-            } else {
-                try {
-                    cb(null, results);
-                } catch (error) {
-                    cb(error, null);
-                };
-            };
-        }
-    );
+let getConnect = function () {
+    if (connect) {
+        return connect.catch(function () {
+            return connect = MongoClient.connect(url);
+        })
+    } else {
+        return connect = MongoClient.connect(url);
+    };
 };
 
-function add(user, cb) {
-    connection.query(
-        'INSERT INTO users.users(name, age) VALUES(?, ?)', [user.name, user.age], (err, results) => {
-            if (err) {
-                cb(err, null);
-            } else {
-                try {
-                    cb(null, results.insertId);
-                } catch (error) {
-                    cb(error, null);
-                };
-            };
-        }
-    );
+function getById(id) {
+    return getConnect()
+        .then((client) => {
+            const db = client.db(dbName);
+            const collection = db.collection('documents');
+            return collection.findOne({ _id: { $eq: id } });
+        });
 };
 
-function delById(id, cb) {
-    connection.query(
-        'DELETE FROM users.users WHERE id=?', [id], (err, results) => {
-            if (err) {
-                cb(err, null);
-            } else {
-                try {
-                    cb(null, results.affectedRows);
-                } catch (error) {
-                    cb(error, null);
-                };
-            };
-        }
-    );
+function add(user) {
+    return getConnect()
+        .then((client) => {
+            const db = client.db(dbName);
+            const collection = db.collection('documents');
+            return collection.insertOne(user);
+        });
+};
 
+function delById(id) {
+    return getConnect()
+        .then((client) => {
+            const db = client.db(dbName);
+            const collection = db.collection('documents');
+            return collection.deleteOne({ _id: { $eq: id } });
+        });
 };
 
 exports.getById = getById;

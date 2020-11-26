@@ -23,46 +23,53 @@ module.exports.default = (app) => {
 
 
         .get('/users/:id', (request, response) => {
-            functions.getById(Number(request.params.id), (err, data) => {
-                if (err) {
-                    response.sendStatus(500);
-                } else {
-                    if (data) {
-                        response.send(data);
-                    } else {
-                        response.statusCode(404);
-                    };
-                };
-            });
+            functions.getById(Number(request.params.id))
+                .then(
+                    function (result) {
+                        if (result) {
+                            response.send(result);
+                        } else {
+                            response.sendStatus(404);
+                        }
+                    },
+                    function (err) {
+                        response.sendStatus(500);
+                    }
+                );
         })
 
         .post('/users/', (request, response) => {
             if (!(request.body.name, request.body.age)) return response.sendStatus(400);
-            let user = { name: request.body.name, age: request.body.age };
-            functions.add(user, (err, data) => {
-                if (err) {
-                    response.sendStatus(500);
-                } else {
-                    if (data) {
-                        response.send({ id: data });
-                    } else {
-                        response.sendStatus(404);
-                    };
-                };
-            });
+            const ID = Math.ceil(Math.random() * 1000);
+            let user = { _id: ID, name: request.body.name, age: request.body.age };
+            functions.add(user)
+                .then(
+                    function (result) {
+                        if (result) {
+                            response.send(result.ops);
+                        } else {
+                            response.sendStatus(404);
+                        }
+                    },
+                    function (err) {
+                        response.sendStatus(500);
+                    }
+                );
         })
 
         .delete('/users/:id', (request, response) => {
-            functions.delById(Number(request.params.id), (err, data) => {
-                if (err) {
-                    response.sendStatus(500);
-                } else {
-                    if (Boolean(data)) {
-                        response.sendStatus(200);
-                    } else {
-                        response.sendStatus(404);
-                    };
-                };
-            });
+            functions.delById(Number(request.params.id))
+                .then(
+                    function (result) {
+                        if (Boolean(result.deletedCount)) {
+                            response.sendStatus(200);
+                        } else {
+                            response.sendStatus(404);
+                        }
+                    },
+                    function (err) {
+                        response.sendStatus(500);
+                    }
+                );
         })
 }

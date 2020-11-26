@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const routing = require('./routing/index.js').default;
-
 const app = express();
 const jsonParser = bodyParser.json();
 
